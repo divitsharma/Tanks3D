@@ -33,18 +33,31 @@ public class ServerManager : MonoBehaviour {
             spawnPoints[i++] = obj.transform;
         }
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
     void HandleNetworkConnectEvent(int connectionId)
     {
         // spawn new player
-        GameObject newPlayer = Instantiate(playerPrefab, spawnPoints[0].position, spawnPoints[0].rotation);
-        players.Add(connectionId, newPlayer.GetComponent<Player>());
+        GameObject newPlayer = Instantiate(playerPrefab); //, spawnPoints[0].position, spawnPoints[0].rotation);
+        Player player = newPlayer.GetComponent<Player>();
+        if (player != null)
+        {
+            players.Add(connectionId, newPlayer.GetComponent<Player>());
+            player.AddOnDeathHandler(HandlePlayerDeath);
+            player.ConnectionId = connectionId;
+            RespawnPlayers();
+        }
 
+    }
+
+    void RespawnPlayers()
+    {
+        List<Transform> spawnPointsList = new List<Transform>(spawnPoints);
+        foreach (Player player in players.Values)
+        {
+            int index = (int)Random.Range(0, spawnPointsList.Count);
+            player.GetComponent<Transform>().SetPositionAndRotation(spawnPointsList[index].position, spawnPointsList[index].rotation);
+            spawnPointsList.RemoveAt(index);
+        }
     }
 
     void HandleNetworkDisconnectEvent(int connectionId)
@@ -55,9 +68,17 @@ public class ServerManager : MonoBehaviour {
 
     void HandleClientUpdateMessage(MessageBase msgBase)
     {
-        Debug.Log("Receiving client update");
         ClientUpdateMessage message = (ClientUpdateMessage)msgBase;
         players[message.connectionId].UpdateFromClient(message);
+    }
+
+    void HandlePlayerDeath(int connectionId)
+    {
+        Debug.Log("player died");
+        Invoke("RespawnPlayers", 1.5f);
+
+        DeathMessage msg = new DeathMessage();
+        server.SendDeathMessage(msg, connectionId);
     }
 
     //void HandleFireMessage(MessageBase msgBase)

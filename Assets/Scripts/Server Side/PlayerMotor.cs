@@ -23,11 +23,12 @@ public class PlayerMotor : MonoBehaviour {
 	void Start () {
         rb = GetComponent<Rigidbody>();
         velocity = Vector3.zero;
-        nextRotation = rb.rotation.eulerAngles.y;
+        nextRotation = -transform.rotation.eulerAngles.y;
 	}
 
     void FixedUpdate()
     {
+        //Debug.Log(nextRotation);
         //RotateTo(manualRotation);
 
         sSinceUpdate += Time.deltaTime;

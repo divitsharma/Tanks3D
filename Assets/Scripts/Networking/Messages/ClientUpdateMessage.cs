@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-
+﻿
 public class ClientUpdateMessage : UnityEngine.Networking.MessageBase {
 
     public int connectionId;

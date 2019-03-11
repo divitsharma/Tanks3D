@@ -17,10 +17,16 @@ public class Client : MonoBehaviour {
     int myConnectionId;
     bool hasStarted = false;
     float connectionTime;
+    int serverConnectionId;
 
     byte error;
 
     Text debugText;
+
+    public int MyConnectionId
+    {
+        get { return myConnectionId; }
+    }
 
 
     // when server disconnects
@@ -50,6 +56,71 @@ public class Client : MonoBehaviour {
         localHostId = NetworkTransport.AddHost(topo, 0); // 0 means assign it a random port
     }
 
+    void Update()
+    {
+        if (!hasStarted) return;
+
+        // Listen for network messages
+        int recHostId;
+        int connectionId;
+        int channelId;
+        byte[] recBuffer = new byte[1024];
+        int bufferSize = 1024;
+        int dataSize;
+        byte error;
+
+        NetworkEventType recData = NetworkTransport.Receive(out recHostId, out connectionId, out channelId, recBuffer, bufferSize, out dataSize, out error);
+        switch (recData)
+        {
+            case NetworkEventType.ConnectEvent:
+                Debug.Log("client receiving from conn " + connectionId);
+                HandleConnectEvent(connectionId);
+                break;
+            case NetworkEventType.DisconnectEvent:
+                OnNetworkDisconnectEvent();
+                break;
+
+            case NetworkEventType.DataEvent:
+                NetworkUtility.HandleNetworkDataEvent(recBuffer, dataSize);                
+                break;
+        }
+    }
+
+    public void SendClientUpdateMessage(ClientUpdateMessage message)
+    {
+        message.connectionId = myConnectionId;
+        NetworkUtility.Send(EMessageType.ClientUpdate, message, localHostId, unreliableChannel, serverConnectionId);
+    }
+
+    public void SendFireMessage(FireMessage message)
+    {
+        message.connectionId = myConnectionId; // make this deprecated
+        NetworkUtility.Send(EMessageType.Fire, message, localHostId, unreliableChannel, serverConnectionId);
+    }
+
+
+
+    void HandleConnectMessage(MessageBase msg)
+    {
+        ConnectMessage cMsg = (ConnectMessage)msg;
+
+        NetworkTransport.StopBroadcastDiscovery();
+        myConnectionId = cMsg.connectionId;
+        if (debugText != null) debugText.text = "We have connection id " + myConnectionId;
+    }
+
+    void HandleNetworkDisconnectEvent()
+    {
+        if (debugText != null)
+            debugText.text = "Disconnected";
+        hasStarted = false;
+        // the other variables are now invalid, shouldn't be used without calling connect first
+    }
+
+    void HandleConnectEvent(int connectionId)
+    {
+        serverConnectionId = connectionId;
+    }
 
     // called on connect button click
     public void Connect()
@@ -66,68 +137,17 @@ public class Client : MonoBehaviour {
                         Server.broadcastSubversion, null, 0, Server.broadcastFrequency, out error);
 
         if (!hasStarted)
-            if (debugText) debugText.text = "Failed to start Network Broadcast Discovery";
-        else
-            if (debugText) debugText.text = "Network Broadcast Discovery started targeting port: " + Server.serverPort;
-        
-    }
-
-
-    void Update()
-    {
-        if (!hasStarted) return;
-
-        // Listen for network messages
-        int recHostId;
-        int connectionId;
-        int channelId;
-        byte[] recBuffer = new byte[1024];
-        int bufferSize = 1024;
-        int dataSize;
-        byte error;
-        NetworkEventType recData = NetworkTransport.Receive(out recHostId, out connectionId, out channelId, recBuffer, bufferSize, out dataSize, out error);
-        switch (recData)
         {
-            case NetworkEventType.DisconnectEvent:
-                OnNetworkDisconnectEvent();
-                break;
-
-            case NetworkEventType.DataEvent:
-                NetworkUtility.HandleNetworkDataEvent(recBuffer, dataSize);                
-                break;
+            if (debugText) debugText.text = "Failed to start Network Broadcast Discovery";
         }
+        else
+        {
+            if (debugText)
+            {
+                debugText.text = "Network Broadcast Discovery started targeting port: " + Server.serverPort;
+            }
+        }
+
     }
-
-    public void SendClientUpdateMessage(ClientUpdateMessage message)
-    {
-        message.connectionId = myConnectionId;
-        NetworkUtility.Send(EMessageType.ClientUpdate, message, localHostId, unreliableChannel, myConnectionId);
-    }
-
-    public void SendFireMessage(FireMessage message)
-    {
-        message.connectionId = myConnectionId; // make this deprecated
-        NetworkUtility.Send(EMessageType.Fire, message, localHostId, unreliableChannel, myConnectionId);
-    }
-
-
-
-    void HandleConnectMessage(MessageBase msg)
-    {
-        ConnectMessage cMsg = (ConnectMessage)msg;
-
-        NetworkTransport.StopBroadcastDiscovery();
-        myConnectionId = cMsg.connectionId;
-        if (debugText) debugText.text = "We have connection id " + myConnectionId;
-    }
-
-    void HandleNetworkDisconnectEvent()
-    {
-        if (debugText)
-            debugText.text = "Disconnected";
-        hasStarted = false;
-        // the other variables are now invalid, shouldn't be used without calling connect first
-    }
-
 
 }

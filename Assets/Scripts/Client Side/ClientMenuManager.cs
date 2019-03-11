@@ -32,6 +32,7 @@ public class ClientMenuManager : MonoBehaviour {
 
     void HandleConnectMessage(UnityEngine.Networking.MessageBase msg)
     {
+        NetworkUtility.messageDelegates[EMessageType.Connect] -= HandleConnectMessage;
         SceneManager.LoadScene("ClientController");
     }
 }

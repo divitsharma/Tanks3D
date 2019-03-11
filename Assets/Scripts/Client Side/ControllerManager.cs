@@ -15,6 +15,11 @@ public class ControllerManager : MonoBehaviour {
     float timer = 0;
     float sendRate = 50; //ms
 
+    string log = "Log";
+
+    [SerializeField]
+    Text clientInfoLabel;
+
 	void Start () {
         GameObject cObj = GameObject.Find(NetworkUtility.clientObjectName);
         if (cObj)
@@ -22,6 +27,10 @@ public class ControllerManager : MonoBehaviour {
             client = cObj.GetComponent<Client>();
             client.OnNetworkDisconnectEvent += HandleNetworkDisconnectEvent;
         }
+
+        NetworkUtility.messageDelegates[EMessageType.Death] += HandleDeathMessage;
+
+        clientInfoLabel.text = client.MyConnectionId.ToString();
     }
 
     void Update()
@@ -33,7 +42,6 @@ public class ControllerManager : MonoBehaviour {
             onNetworkTimerElapsed();
         }
     }
-
 
     void HandleNetworkDisconnectEvent()
     {
@@ -55,5 +63,15 @@ public class ControllerManager : MonoBehaviour {
         client.SendClientUpdateMessage(message);
     }
     
+    void HandleDeathMessage(UnityEngine.Networking.MessageBase msgBase)
+    {
+        log = "You died.";
+        Handheld.Vibrate();
+    }
+
+    void OnGUI()
+    {
+        GUILayout.Label(log);
+    }
 
 }

@@ -9,7 +9,8 @@ public enum EMessageType
 {
     Connect = 0,
     ClientUpdate,
-    Fire
+    Fire,
+    Death
 }
 
 
@@ -22,19 +23,22 @@ public class NetworkUtility : MonoBehaviour {
     {
         { EMessageType.Connect, new ConnectMessage() },
         { EMessageType.ClientUpdate, new ClientUpdateMessage() },
-        { EMessageType.Fire, new FireMessage() }
+        { EMessageType.Fire, new FireMessage() },
+        { EMessageType.Death, new DeathMessage() }
     };
 
     // events to let other classes handle network messages
     static event Action<MessageBase> OnConnectMessage; // is an instance of the delegate
     static event Action<MessageBase> OnClientUpdateMessage;
     static event Action<MessageBase> OnFireMessage;
+    static event Action<MessageBase> OnDeathMessage;
 
     public static Dictionary<EMessageType, Action<MessageBase>> messageDelegates = new Dictionary<EMessageType, Action<MessageBase>>()
     {
         { EMessageType.Connect, OnConnectMessage },
         { EMessageType.ClientUpdate, OnClientUpdateMessage },
-        { EMessageType.Fire, OnFireMessage }
+        { EMessageType.Fire, OnFireMessage },
+        { EMessageType.Death, OnDeathMessage }
     };
 
 

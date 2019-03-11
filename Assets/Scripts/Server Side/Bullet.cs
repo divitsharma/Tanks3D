@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Bullet : MonoBehaviour {
+public class Bullet : MonoBehaviour , IDamager {
 
     [SerializeField]
     float speed;
+
+    [SerializeField]
+    int damage;
 
     void OnCollisionEnter(Collision other)
     {
@@ -21,5 +24,9 @@ public class Bullet : MonoBehaviour {
         GetComponent<Rigidbody>().velocity = transform.forward.normalized * speed;
 	}
 	
+    public int GetDamage()
+    {
+        return damage;
+    }
 
 }

@@ -78,6 +78,7 @@ public class Server : MonoBehaviour {
                 break;
 
             case NetworkEventType.DataEvent:
+                Debug.Log("Receiving data message from " + connectionId);
                 NetworkUtility.HandleNetworkDataEvent(recBuffer, dataSize);
                 break;
 
@@ -98,7 +99,7 @@ public class Server : MonoBehaviour {
     {
         // add new client to a list (in manager)
 
-        Debug.Log("Sending connect message back to client");
+        Debug.Log("Sending connect message back to client number " + connectionId);
         // tell client that they are connected and give them the connection id
         ConnectMessage cm = new ConnectMessage();
         cm.connectionId = connectionId;
@@ -122,5 +123,10 @@ public class Server : MonoBehaviour {
             Debug.Log("Successfully connected to broadcaster at " + broadcasterIP);
     }
 
+    public void SendDeathMessage(DeathMessage msg, int sendTo)
+    {
+        Debug.Log("sending death message");
+        NetworkUtility.Send(EMessageType.Death, msg, localHostId, reliableChannel, sendTo);
+    }
 
 }
