@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// The game manager for the server side
 [RequireComponent(typeof(Server))]
 public class ServerManager : MonoBehaviour {
+
+    [SerializeField]
+    GameObject playerPrefab;
+    [SerializeField]
+    Color[] playerColors;
 
     Dictionary<int, Player> players = new Dictionary<int, Player>();
 
     Server server;
-
-    [SerializeField]
-    GameObject playerPrefab;
 
     Transform[] spawnPoints;
 
@@ -32,18 +35,27 @@ public class ServerManager : MonoBehaviour {
         {
             spawnPoints[i++] = obj.transform;
         }
+
+        for (i = 0; i < playerColors.Length; i++)
+        {
+            float h, s, v;
+            Color.RGBToHSV(playerColors[i], out h, out s, out v);
+            playerColors[i] = Color.HSVToRGB(h, 1f, v);
+        }
 	}
 
     void HandleNetworkConnectEvent(int connectionId)
     {
         // spawn new player
-        GameObject newPlayer = Instantiate(playerPrefab); //, spawnPoints[0].position, spawnPoints[0].rotation);
+        GameObject newPlayer = Instantiate(playerPrefab);
         Player player = newPlayer.GetComponent<Player>();
         if (player != null)
         {
             players.Add(connectionId, newPlayer.GetComponent<Player>());
             player.AddOnDeathHandler(HandlePlayerDeath);
             player.ConnectionId = connectionId;
+            // the color set is based on order of joining
+            player.SetColor(playerColors[(players.Count - 1) % playerColors.Length]);
             RespawnPlayers();
         }
 
@@ -51,6 +63,12 @@ public class ServerManager : MonoBehaviour {
 
     void RespawnPlayers()
     {
+        if (spawnPoints.Length < players.Count)
+        {
+            Debug.LogError("Not enough spawn points.");
+            return;
+        }
+
         List<Transform> spawnPointsList = new List<Transform>(spawnPoints);
         foreach (Player player in players.Values)
         {

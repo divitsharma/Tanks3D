@@ -13,6 +13,9 @@ public class Player : MonoBehaviour {
     int maxHealth = 100;
     int health;
 
+    [SerializeField]
+    Material modelMaterial;
+
     public delegate void OnDeathDelegate(int connectionId);
     OnDeathDelegate onDeath;
 
@@ -53,6 +56,15 @@ public class Player : MonoBehaviour {
     public void AddOnDeathHandler(OnDeathDelegate del)
     {
         onDeath += del;
+    }
+
+    public void SetColor(Color color)
+    {
+        MeshRenderer[] meshes = gameObject.GetComponentsInChildren<MeshRenderer>();
+        foreach (MeshRenderer mesh in meshes)
+        {
+            mesh.material.color = color;
+        }
     }
 
     void TakeDamage(int damage)
