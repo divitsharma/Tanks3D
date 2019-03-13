@@ -27,7 +27,7 @@ public class NetworkUtility : MonoBehaviour {
         { EMessageType.Death, new DeathMessage() }
     };
 
-    // events to let other classes handle network messages
+    // events to let other classes handle network messages. Action is delegate to method with one param, no return value
     static event Action<MessageBase> OnConnectMessage; // is an instance of the delegate
     static event Action<MessageBase> OnClientUpdateMessage;
     static event Action<MessageBase> OnFireMessage;

@@ -9,8 +9,12 @@ public class ServerManager : MonoBehaviour {
 
     [SerializeField]
     GameObject playerPrefab;
+
     [SerializeField]
     Color[] playerColors;
+
+    [SerializeField]
+    ScoreDisplay scoreDisplay;
 
     Dictionary<int, Player> players = new Dictionary<int, Player>();
 
@@ -56,6 +60,11 @@ public class ServerManager : MonoBehaviour {
             player.ConnectionId = connectionId;
             // the color set is based on order of joining
             player.SetColor(playerColors[(players.Count - 1) % playerColors.Length]);
+
+            // UI
+            scoreDisplay.AddScoreCard(connectionId);
+            player.OnScoreChanged += scoreDisplay.HandleScoreChanged;
+
             RespawnPlayers();
         }
 
@@ -90,10 +99,12 @@ public class ServerManager : MonoBehaviour {
         players[message.connectionId].UpdateFromClient(message);
     }
 
-    void HandlePlayerDeath(int connectionId)
+    void HandlePlayerDeath(int connectionId, int killerId)
     {
         Debug.Log("player died");
         Invoke("RespawnPlayers", 1.5f);
+
+        players[killerId].IncrementScore();
 
         DeathMessage msg = new DeathMessage();
         server.SendDeathMessage(msg, connectionId);

@@ -36,12 +36,11 @@ public class BasicGun : Gun {
         {
             GameObject bullet = Instantiate(bulletPrefab, nozzleTransform.position, nozzleTransform.rotation);
             ammo--;
+            bullet.GetComponent<Bullet>().SetSenderID(owner.ConnectionId);
             Destroy(bullet, bulletLifetime);
             Invoke("RestoreAmmo", bulletLifetime);
             sSinceFired = 0f;
         }
-
-
     }
 
     void RestoreAmmo()

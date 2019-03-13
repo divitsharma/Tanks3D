@@ -13,12 +13,22 @@ public class Player : MonoBehaviour {
     int maxHealth = 100;
     int health;
 
+    int score = 0;
+    public int Score
+    {
+        get { return score; }
+    }
+
     [SerializeField]
     Material modelMaterial;
 
-    public delegate void OnDeathDelegate(int connectionId);
+    public delegate void ScoreChangedDelegate(int connectionId, int newScore);
+    public event ScoreChangedDelegate OnScoreChanged;
+
+    public delegate void OnDeathDelegate(int connectionId, int killerId);
     OnDeathDelegate onDeath;
 
+    // the unique ID of this player in the network - does it change if someone else disonnects?
     int connectionId;
     public int ConnectionId
     {
@@ -31,7 +41,7 @@ public class Player : MonoBehaviour {
         IDamager damager = other.gameObject.GetComponent<IDamager>();
         if (damager != null)
         {
-            TakeDamage(damager.GetDamage());
+            TakeDamage(damager.GetDamage(), damager.GetSenderID());
         }
     }
 
@@ -40,6 +50,7 @@ public class Player : MonoBehaviour {
     {
         motor = GetComponent<PlayerMotor>();
         gun = GetComponent<BasicGun>();
+        gun.AttachTo(this);
         health = maxHealth;
     }
 
@@ -67,18 +78,24 @@ public class Player : MonoBehaviour {
         }
     }
 
-    void TakeDamage(int damage)
+    public void IncrementScore()
+    {
+        score++;
+        OnScoreChanged(connectionId, score);
+    }
+
+    void TakeDamage(int damage, int killerId)
     {
         health -= damage;
         if (health <= 0)
         {
-            Die();
+            Die(killerId);
         }
     }
 
-    void Die()
+    void Die(int killerId)
     {
-        onDeath(ConnectionId);
+        onDeath(ConnectionId, killerId);
     }
 
 }

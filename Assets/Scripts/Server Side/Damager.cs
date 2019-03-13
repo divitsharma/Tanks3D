@@ -5,4 +5,6 @@ using UnityEngine;
 public interface IDamager
 {
     int GetDamage();
+    int GetSenderID();
+    void SetSenderID(int id);
 }

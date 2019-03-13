@@ -11,6 +11,8 @@ public class Bullet : MonoBehaviour , IDamager {
     [SerializeField]
     int damage;
 
+    int senderId;
+
     void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.tag == "Player")
@@ -27,6 +29,16 @@ public class Bullet : MonoBehaviour , IDamager {
     public int GetDamage()
     {
         return damage;
+    }
+
+    public int GetSenderID()
+    {
+        return senderId;
+    }
+
+    public void SetSenderID(int id)
+    {
+        senderId = id;
     }
 
 }
